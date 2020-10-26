@@ -1,5 +1,6 @@
 ﻿using ImageMagick;
 using System;
+using System.IO;
 
 namespace ImageMagickApp.Samples
 {
@@ -12,20 +13,25 @@ namespace ImageMagickApp.Samples
                 ColorFuzz = new Percentage(15)
             };
             var afterImage = new MagickImage(SampleFiles.ImageCompareAfter);
-            var deltaImagePath = $"{SampleFiles.OutputDirectory}\\{DateTime.Now.Ticks}.png";
-            var threashHold = 0.01;
-
-            using var delta = new MagickImage();
-
-            var result = beforeImage.Compare(afterImage, ErrorMetric.Fuzz, delta);
-            if (result > threashHold)
+            var deltaImage = new MagickImage();
+            var threshold = 0.01;
+            var compareSetting = new CompareSettings
             {
-                delta.Write(deltaImagePath);
-                Console.WriteLine($"Threshhold: {threashHold} compare result: {result} Does not match.");
+                HighlightColor = MagickColors.Red,
+                LowlightColor = MagickColors.White,
+                Metric = ErrorMetric.Fuzz,
+            };
+
+            var result = beforeImage.Compare(afterImage, compareSetting, deltaImage);
+            if (result > threshold)
+            {
+                var deltaImagePath = Path.Combine(SampleFiles.OutputDirectory, $"{DateTime.Now.Ticks}.png");
+                deltaImage.Write(deltaImagePath);
+                Console.WriteLine($"Threshold: {threshold} compare result: {result} Does not match.");
             }
             else
             {
-                Console.WriteLine($"Threshhold: {threashHold} compare result: {result} Matched.");
+                Console.WriteLine($"Threshold: {threshold} compare result: {result} Matched.");
             }
         }
     }
